@@ -4,6 +4,11 @@ from rest_framework import status
 from todos.models import Task
 
 
+# Valid credentials
+API_KEY = "buildy-api-key-2026"
+API_SECRET = "buildy-secret-2026"
+
+
 class TaskAPITestCase(TestCase):
     """
     Integration tests for Task API following TDD principles.
@@ -23,7 +28,11 @@ class TaskAPITestCase(TestCase):
         - GET /api/tasks/ returns 200
         - Response is an empty list
         """
-        response = self.client.get(self.list_url)
+        response = self.client.get(
+            self.list_url,
+            HTTP_X_API_KEY=API_KEY,
+            HTTP_X_API_SECRET=API_SECRET
+        )
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json(), [])
@@ -43,7 +52,13 @@ class TaskAPITestCase(TestCase):
             'completed': False
         }
         
-        response = self.client.post(self.list_url, data, format='json')
+        response = self.client.post(
+            self.list_url,
+            data,
+            format='json',
+            HTTP_X_API_KEY=API_KEY,
+            HTTP_X_API_SECRET=API_SECRET
+        )
         
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response_data = response.json()
@@ -64,7 +79,11 @@ class TaskAPITestCase(TestCase):
         Task.objects.create(title='Task 1', completed=False)
         Task.objects.create(title='Task 2', completed=True)
         
-        response = self.client.get(self.list_url)
+        response = self.client.get(
+            self.list_url,
+            HTTP_X_API_KEY=API_KEY,
+            HTTP_X_API_SECRET=API_SECRET
+        )
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         tasks = response.json()
@@ -85,7 +104,13 @@ class TaskAPITestCase(TestCase):
         url = f'/api/tasks/{task.id}/title/'
         data = {'title': 'Updated title'}
         
-        response = self.client.put(url, data, format='json')
+        response = self.client.put(
+            url,
+            data,
+            format='json',
+            HTTP_X_API_KEY=API_KEY,
+            HTTP_X_API_SECRET=API_SECRET
+        )
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         task.refresh_from_db()
@@ -105,13 +130,21 @@ class TaskAPITestCase(TestCase):
         url = f'/api/tasks/{task.id}/toggle/'
         
         # First toggle: False -> True
-        response = self.client.post(url)
+        response = self.client.post(
+            url,
+            HTTP_X_API_KEY=API_KEY,
+            HTTP_X_API_SECRET=API_SECRET
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         task.refresh_from_db()
         self.assertEqual(task.completed, True)
         
         # Second toggle: True -> False
-        response = self.client.post(url)
+        response = self.client.post(
+            url,
+            HTTP_X_API_KEY=API_KEY,
+            HTTP_X_API_SECRET=API_SECRET
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         task.refresh_from_db()
         self.assertEqual(task.completed, False)
@@ -127,7 +160,11 @@ class TaskAPITestCase(TestCase):
         task = Task.objects.create(title='Task to delete', completed=False)
         url = f'/api/tasks/{task.id}/'
         
-        response = self.client.delete(url)
+        response = self.client.delete(
+            url,
+            HTTP_X_API_KEY=API_KEY,
+            HTTP_X_API_SECRET=API_SECRET
+        )
         
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Task.objects.filter(id=task.id).exists())
@@ -142,7 +179,13 @@ class TaskAPITestCase(TestCase):
         url = '/api/tasks/999/title/'
         data = {'title': 'New title'}
         
-        response = self.client.put(url, data, format='json')
+        response = self.client.put(
+            url,
+            data,
+            format='json',
+            HTTP_X_API_KEY=API_KEY,
+            HTTP_X_API_SECRET=API_SECRET
+        )
         
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -155,7 +198,11 @@ class TaskAPITestCase(TestCase):
         """
         url = '/api/tasks/999/toggle/'
         
-        response = self.client.post(url)
+        response = self.client.post(
+            url,
+            HTTP_X_API_KEY=API_KEY,
+            HTTP_X_API_SECRET=API_SECRET
+        )
         
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -169,7 +216,58 @@ class TaskAPITestCase(TestCase):
         """
         data = {'title': '', 'completed': False}
         
-        response = self.client.post(self.list_url, data, format='json')
+        response = self.client.post(
+            self.list_url,
+            data,
+            format='json',
+            HTTP_X_API_KEY=API_KEY,
+            HTTP_X_API_SECRET=API_SECRET
+        )
         
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('title', response.json())
+
+    def test_create_task_whitespace_title(self):
+        """
+        Test creating task with whitespace-only title.
+        
+        Validates:
+        - POST with whitespace-only title returns 400
+        - Validation error for whitespace is present
+        """
+        data = {'title': '   ', 'completed': False}
+        
+        response = self.client.post(
+            self.list_url,
+            data,
+            format='json',
+            HTTP_X_API_KEY=API_KEY,
+            HTTP_X_API_SECRET=API_SECRET
+        )
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('title', response.json())
+
+    def test_update_title_whitespace(self):
+        """
+        Test updating task title with whitespace-only string.
+        
+        Validates:
+        - PUT with whitespace-only title returns 400
+        - Title is not updated in database
+        """
+        task = Task.objects.create(title='Original title', completed=False)
+        url = f'/api/tasks/{task.id}/title/'
+        data = {'title': '   '}
+        
+        response = self.client.put(
+            url,
+            data,
+            format='json',
+            HTTP_X_API_KEY=API_KEY,
+            HTTP_X_API_SECRET=API_SECRET
+        )
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        task.refresh_from_db()
+        self.assertEqual(task.title, 'Original title')  # Title unchanged
