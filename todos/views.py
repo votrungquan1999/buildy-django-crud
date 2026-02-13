@@ -52,18 +52,12 @@ class TaskViewSet(viewsets.ModelViewSet):
         Body: {"title": "New title"}
         """
         task = self.get_object()
-        title = request.data.get('title')
         
-        if not title:
-            return Response(
-                {"title": ["This field is required."]},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        # Use serializer for validation
+        serializer = self.get_serializer(task, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         
-        task.title = title
-        task.save()
-        
-        serializer = self.get_serializer(task)
         return Response(serializer.data)
     
     @action(detail=True, methods=['post'], url_path='toggle')
