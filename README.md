@@ -25,6 +25,15 @@ python manage.py migrate
 python manage.py runserver
 ```
 
+## Authentication
+
+All API requests require these headers:
+
+```bash
+X-API-Key: buildy-api-key-2026
+X-API-Secret: buildy-secret-2026
+```
+
 ## Running Tests
 
 ```bash
@@ -37,13 +46,17 @@ Base URL: `http://localhost:8000/api`
 
 ### List All Tasks
 ```bash
-curl http://localhost:8000/api/tasks/
+curl http://localhost:8000/api/tasks/ \
+  -H "X-API-Key: buildy-api-key-2026" \
+  -H "X-API-Secret: buildy-secret-2026"
 ```
 
 ### Create a Task
 ```bash
 curl -X POST http://localhost:8000/api/tasks/ \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: buildy-api-key-2026" \
+  -H "X-API-Secret: buildy-secret-2026" \
   -d '{"title": "Buy groceries", "completed": false}'
 ```
 
@@ -51,17 +64,23 @@ curl -X POST http://localhost:8000/api/tasks/ \
 ```bash
 curl -X PUT http://localhost:8000/api/tasks/1/title/ \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: buildy-api-key-2026" \
+  -H "X-API-Secret: buildy-secret-2026" \
   -d '{"title": "Updated title"}'
 ```
 
 ### Toggle Task Completion
 ```bash
-curl -X POST http://localhost:8000/api/tasks/1/toggle/
+curl -X POST http://localhost:8000/api/tasks/1/toggle/ \
+  -H "X-API-Key: buildy-api-key-2026" \
+  -H "X-API-Secret: buildy-secret-2026"
 ```
 
 ### Delete a Task
 ```bash
-curl -X DELETE http://localhost:8000/api/tasks/1/
+curl -X DELETE http://localhost:8000/api/tasks/1/ \
+  -H "X-API-Key: buildy-api-key-2026" \
+  -H "X-API-Secret: buildy-secret-2026"
 ```
 
 ## Quick Start
@@ -70,16 +89,24 @@ curl -X DELETE http://localhost:8000/api/tasks/1/
 # Create a task
 curl -X POST http://localhost:8000/api/tasks/ \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: buildy-api-key-2026" \
+  -H "X-API-Secret: buildy-secret-2026" \
   -d '{"title": "Learn Django", "completed": false}'
 
 # List all tasks
-curl http://localhost:8000/api/tasks/
+curl http://localhost:8000/api/tasks/ \
+  -H "X-API-Key: buildy-api-key-2026" \
+  -H "X-API-Secret: buildy-secret-2026"
 
 # Mark task as completed
-curl -X POST http://localhost:8000/api/tasks/1/toggle/
+curl -X POST http://localhost:8000/api/tasks/1/toggle/ \
+  -H "X-API-Key: buildy-api-key-2026" \
+  -H "X-API-Secret: buildy-secret-2026"
 
 # Delete task
-curl -X DELETE http://localhost:8000/api/tasks/1/
+curl -X DELETE http://localhost:8000/api/tasks/1/ \
+  -H "X-API-Key: buildy-api-key-2026" \
+  -H "X-API-Secret: buildy-secret-2026"
 ```
 
 ## License
